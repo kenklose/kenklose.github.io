@@ -1,1 +1,1208 @@
-Hello cruel World!
+<html>
+    <head>
+        <title>A test</title>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>		
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-deferred@1"></script>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>		<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@0.5.5/chartjs-plugin-annotation.min.js"></script>
+		<style>
+		canvas{
+			-moz-user-select: none;
+			-webkit-user-select: none;
+			-ms-user-select: none;
+		}
+        button:disabled {
+            color: lightgrey;
+            cursor: not-allowed;
+        }
+		</style>
+        <script>
+            function parseYYYYMMDD(str) {
+                var parts = str.split('-');
+                return new Date(parts[0],parts[1]-1,parts[2]);
+            }
+
+            function parseMDYY(str) {
+                var parts = str.split('/');
+                return new Date("20"+parts[2],parts[0]-1,parts[1]);
+            }
+
+            var loaded = new Object();
+            loaded.window = false;
+
+        window.chartColors = {
+            red: 'rgb(255, 99, 132)',
+            orange: 'rgba(255, 159, 64,0.5)',
+            yellow: 'rgb(255, 205, 86)',
+            green: 'rgba(75, 192, 192,0.3)',
+            blue: 'rgb(54, 162, 235)',
+            purple: 'rgba(153, 102, 255,0.3)',
+            grey: 'rgb(201, 203, 207)',
+            ltred: 'rgb(255, 99, 132)',
+            ltorange: 'rgba(255, 159, 64,0.3)',
+            ltyellow: 'rgb(255, 205, 86)',
+            ltgreen: 'rgb(75, 192, 192)',
+            ltblue: 'rgb(54, 162, 235)',
+            ltpurple: 'rgba(153, 102, 255,0.6)',
+            ltgrey: 'rgb(201, 203, 207)'
+        };
+
+        var sqlData = null;
+        var hospArr = null;
+        var hospData = new Object();
+
+        let hospRequest = new XMLHttpRequest();
+        hospRequest.open('GET','nj_hospitalizations.json');
+        hospRequest.responseType = 'text';
+        loaded.hospJSON = false;
+        hospRequest.onload = function() {
+            var x = hospRequest.response;
+            hospArr = JSON.parse(x);
+            loaded.hospJSON = true;
+            doLoaded();
+        }
+        hospRequest.send();
+
+        let stateRequest = new XMLHttpRequest();
+        stateRequest.open('GET','nj_data.json');
+        stateRequest.responseType = 'text';
+        loaded.stateJSON = false;
+        stateRequest.onload = function() {
+            var x = stateRequest.response;
+            sqlData = JSON.parse(x);
+            loaded.stateJSON = true;
+            doLoaded();
+        }
+        stateRequest.send();
+    //     var sqlData = {labels: ['2020-03-04','2020-03-05','2020-03-06','2020-03-07','2020-03-08','2020-03-09','2020-03-10','2020-03-11','2020-03-12','2020-03-13','2020-03-14','2020-03-15','2020-03-16','2020-03-17','2020-03-18','2020-03-19','2020-03-20','2020-03-21','2020-03-22','2020-03-23','2020-03-24','2020-03-25','2020-03-26','2020-03-27','2020-03-28','2020-03-29','2020-03-30','2020-03-31','2020-04-01','2020-04-02','2020-04-03','2020-04-04','2020-04-05','2020-04-06','2020-04-07','2020-04-08','2020-04-09','2020-04-10','2020-04-11','2020-04-12','2020-04-13','2020-04-14','2020-04-15','2020-04-16','2020-04-17','2020-04-18','2020-04-19','2020-04-20','2020-04-21','2020-04-22','2020-04-23','2020-04-24','2020-04-25','2020-04-26','2020-04-27','2020-04-28','2020-04-29','2020-04-30','2020-05-01','2020-05-02','2020-05-03','2020-05-04','2020-05-05','2020-05-06','2020-05-07','2020-05-08','2020-05-09','2020-05-10','2020-05-11','2020-05-12','2020-05-13','2020-05-14','2020-05-15','2020-05-16','2020-05-17','2020-05-18','2020-05-19'],
+    // totalcases: [1,2,4,4,6,11,15,23,29,50,75,98,176,268,427,735,896,1336,1914,2844,3675,4402,6876,8825,11124,13386,16636,18696,22255,25590,29895,34124,37505,41090,44416,47437,51027,54588,58151,61850,64584,68824,71030,75317,78467,81420,85301,88797,92387,95411,99989,102196,105523,109038,111188,113856,116264,118652,121190,123717,126744,128269,130593,131890,133635,135454,137085,138532,139945,140743,141560,142704,143905,145089,146334,148039,149037],
+    // totaldeaths: [0,0,0,0,0,0,1,1,1,1,2,2,3,3,5,9,11,16,20,27,51,69,89,115,147,161,206,274,362,539,647,847,917,1005,1233,1504,1706,1932,2183,2350,2443,2805,3156,3518,3840,4070,4202,4377,4753,5063,5368,5617,5863,5938,6044,6442,6770,7228,7538,7742,7871,7910,8244,8549,8801,8952,9116,9255,9310,9508,9702,9946,10138,10249,10356,10435,10586],
+// };
+
+        window.onload = function() {
+            loaded.window = true;
+            doLoaded();
+        }
+
+        function doLoaded() {
+            var keys = Object.keys(loaded);
+            for(var i = 0; i < keys.length; i++) {
+                if(loaded[keys[i]] == false) {
+                    return;
+                }
+            }
+
+            document.getElementById("theHeader").innerText = "Processing Data";
+
+            with(sqlData) {
+                sqlData.timeToDouble = new Array();
+                sqlData.casesToday = new Array();
+                sqlData.cases7days = new Array();
+                sqlData.cases14days = new Array();
+                sqlData.timeToDoubleDeaths = new Array();
+                sqlData.deathsToday = new Array();
+                sqlData.deaths7days = new Array();
+                sqlData.deathsComp = new Array();
+                sqlData.deathsCompAvg = new Array();
+                sqlData.testsToday = new Array();
+                sqlData.tests7days = new Array();
+                sqlData.tests14days = new Array();
+                sqlData.timeToDoubleTests = new Array();
+                sqlData.posPct = new Array();
+                sqlData.posPct7days = new Array();
+                for(var i = 0; i < labels.length; i++) {
+                    totalcases[i] = isNaN(totalcases[i])?0:totalcases[i];
+                    totaltests[i] = isNaN(totaltests[i])?0:totaltests[i];
+                    totaldeaths[i] = isNaN(totaldeaths[i])?0:totaldeaths[i];
+                    casesToday[i] = (i==0)?totalcases[i]:totalcases[i]-totalcases[i-1];
+                    deathsToday[i] = (i==0)?totaldeaths[i]:totaldeaths[i]-totaldeaths[i-1];
+                    deathsComp[i] = deathsToday[i] - deathsToday[Math.max(0,i-7)];
+                    testsToday[i] = (i==0)?totaltests[i]:totaltests[i]-totaltests[i-1];
+                    cases7days[i] = 0;
+                    deaths7days[i] = 0;
+                    deathsCompAvg[i] = 0;
+                    tests7days[i] = 0;
+
+                    for(var j = i; j >= Math.max(0,i-6); j--) {
+                        cases7days[i] += casesToday[j];
+                        deaths7days[i] += deathsToday[j];
+                        deathsCompAvg[i] += deathsComp[j];
+                        tests7days[i] += testsToday[j];
+                    }
+                    deathsCompAvg[i] = Math.round(10 * deathsCompAvg[i] / (Math.min(7,i+1))) / 10;
+                    posPct[i] = Math.round(casesToday[i]/testsToday[i] * 1000) / 10;
+                    posPct7days[i] = Math.round(cases7days[i] / tests7days[i] * 1000) / 10;
+                    cases14days[i] = 0;
+                    tests14days[i] = 0;
+
+                    for(var j = i; j >= Math.max(0,i-13); j--) {
+                        cases14days[i] += casesToday[j];
+                        tests14days[i] += testsToday[j];
+                    }
+                    timeToDouble[i] = Math.round(49*totalcases[i]/cases7days[i])/10;
+                    timeToDoubleDeaths[i] = Math.round(49*totaldeaths[i]/deaths7days[i])/10;
+                    timeToDoubleTests[i] = Math.round(49*totaltests[i]/tests7days[i])/10;
+                }
+                var maxCases = 0, maxCases7 = 0, maxDeaths = 0, maxDeaths7 = 0, 
+                    maxTests = 0, maxTests7 = 0,
+                    maxCasesDate = "", maxDeathsDate = "", maxTestsDate = "";
+                for(var i = 0; i < labels.length; i++) {
+                    if(cases7days[i] > maxCases7) {
+                        maxCases7 = cases7days[i];
+                    }
+                    if(casesToday[i] > maxCases) {
+                        maxCases = casesToday[i];
+                        maxCasesDate = labels[i];
+                    }
+                    if(testsToday[i] > maxTests) {
+                        maxTests = testsToday[i];
+                        maxTestsDate = labels[i];
+                    }
+                    if(tests7days[i] > maxTests7) {
+                        maxTests7 = tests7days[i];
+                    }
+                    if(deaths7days[i] > maxDeaths7) {
+                        maxDeaths7 = deaths7days[i];
+                    }
+                    if(deathsToday[i] > maxDeaths) {
+                        maxDeaths = deathsToday[i];
+                        maxDeathsDate = labels[i];
+                    }
+                }
+
+                sqlData.casesPctMax = new Array();
+                sqlData.deathsPctMax = new Array();
+                sqlData.testsPctMax = new Array();
+                for(var i = 0; i < labels.length; i++) {
+                    casesPctMax[i] = Math.round(1000*cases7days[i]/maxCases7)/10;
+                    deathsPctMax[i] = Math.round(1000*deaths7days[i]/maxDeaths7)/10;
+                    testsPctMax[i] = Math.round(1000*tests7days[i]/maxTests7)/10;
+                }
+            }
+
+            hospData.dates = new Array();
+            hospData.central = new Array();
+            hospData.south = new Array();
+            hospData.north = new Array();
+            hospData.total = new Array();
+            hospData.centralMax = 0;
+            hospData.southMax = 0;
+            hospData.northMax = 0;
+            hospData.totalMax = 0;
+            hospData.maxDate = "";
+            with(hospData) {
+                for(var i = 0; i < hospArr.length; i++) {
+                    dates[i] = hospArr[i].date;
+                    central[i] = hospArr[i].central;
+                    south[i] = hospArr[i].south;
+                    north[i] = hospArr[i].north;
+                    total[i] = hospArr[i].central + hospArr[i].south + hospArr[i].north;
+                    centralMax = Math.max(centralMax, central[i]);                
+                    southMax = Math.max(southMax, south[i]);                
+                    northMax = Math.max(northMax, north[i]);                
+                    if(total[i] > totalMax) {
+                        totalMax = total[i];
+                        maxDate = dates[i];
+                    }
+                }
+                hospData.centralPct = new Array();
+                hospData.southPct = new Array();
+                hospData.northPct = new Array();
+                hospData.totalPct = new Array();
+                for(var i = 0; i < hospArr.length; i++) {
+                    centralPct[i] = Math.max(central[i]/centralMax*1000)/10;
+                    northPct[i] = Math.max(north[i]/northMax*1000)/10;
+                    southPct[i] = Math.max(south[i]/southMax*1000)/10;
+                    totalPct[i] = Math.max(total[i]/totalMax*1000)/10;
+                }
+                hospData.totalPctShifted = new Array();
+
+                for(var i = 0, j = 0; i < sqlData.labels.length && j < hospData.totalPct.length; i++) {
+                    var a = parseYYYYMMDD(sqlData.labels[i]);
+                    var b = parseMDYY(hospData.dates[j]);
+
+                    if(a.getTime() == b.getTime()) {
+                        hospData.totalPctShifted[i] = hospData.totalPct[j++];
+                    }
+                    else {
+                        hospData.totalPctShifted[i] = NaN; 
+                    }
+                }
+            }
+
+            document.getElementById("theHeader").innerText = "COVID-19 Charts";
+
+            var casesCtx = document.getElementById("casesChart");
+            var casesChart = Chart.Line(casesCtx, {
+                // The data for our dataset
+                data: {
+                    labels: sqlData.labels,
+                    datasets: [{
+                        label: 'Total Cases',
+                        backgroundColor: chartColors.red,
+                        borderColor: chartColors.ltred,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        data: sqlData.totalcases
+                    }, {
+                        label: 'New Cases Past 14 Days',
+                        backgroundColor: chartColors.purple,
+                        borderColor: chartColors.ltpurple,
+                        fill: true,
+                        yAxisID: 'leftAxis',
+                        data: sqlData.cases14days
+                    }, {
+                        type: 'bar',
+                        label: 'New Cases Today',
+                        backgroundColor: chartColors.green,
+                        borderColor: chartColors.ltgreen,
+                        fill: true,
+                        yAxisID: 'rightAxis',
+                        data: sqlData.casesToday
+                    }
+                ]
+
+                },
+                // Configuration options go here
+                options: {
+                    scales: {
+                        yAxes : [
+                            {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                id: 'leftAxis',
+                                scaleLabel:
+                                {
+                                    display: true,
+                                    labelString: 'Total Cases / Active Cases (New Cases Past 14 Days)'
+                                },
+                                ticks: {
+                                    userCallback: function(tick) {
+                                        return Number(tick).toLocaleString();
+                                    }
+                                }
+                            },
+                            {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                id: 'rightAxis',
+                                scaleLabel:
+                                {
+                                    display: true,
+                                    labelString: 'New Cases Today'
+                                },
+                                ticks: {
+                                    userCallback: function(tick) {
+                                        return Number(tick).toLocaleString();
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var set = data.datasets[tooltipItem.datasetIndex];
+                                return [set.label + ": " + Number(set.data[tooltipItem.index]).toLocaleString()];
+                            }
+                        }
+                    },
+                    plugins: {
+                        deferred: {
+                            xOffset: 150,
+                            yOffset: '50%',
+                            delay: 500
+                        }
+                    },
+                    annotation: {
+                        annotations: [
+                            {
+                                drawTime: "afterDatasetsDraw",
+                                id: "hline",
+                                type: "line",
+                                mode: "horizontal",
+                                scaleID: "leftAxis",
+                                value: 88822,
+                                borderColor: "grey",
+                                borderWidth: 1,
+                                borderDash: [2,2],
+                                label: {
+                                    content: "<< 1% of Population (88822)",
+                                    enabled: true,
+                                    backgroundColor: 'grey',
+                                    position: "left",
+                                    fontStyle: "normal",
+                                    xAdjust: 10
+                                },
+                            },
+                            {
+                                drawTime: "afterDatasetsDraw",
+                                id: "hline2",
+                                type: "line",
+                                mode: "horizontal",
+                                scaleID: "rightAxis",
+                                value: 4441,
+                                borderColor: "grey",
+                                borderWidth: 1,
+                                borderDash: [2,2],
+                                label: {
+                                    content: "0.05% of Population (4441 - 1 in 2000) >>",
+                                    enabled: true,
+                                    backgroundColor: 'grey',
+                                    position: "left",
+                                    fontStyle: "normal",
+                                    xAdjust: 10
+                                },
+                            }
+                        ]
+                    }
+                    
+                }
+            });
+
+
+            var deathsCtx = document.getElementById("deathsChart");
+            var deathsChart = Chart.Line(deathsCtx, {
+                // The data for our dataset
+                data: {
+                    labels: sqlData.labels,
+                    datasets: [{
+                        label: 'Deaths',
+                        backgroundColor: chartColors.purple,
+                        borderColor: chartColors.ltpurple,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        data: sqlData.totaldeaths
+                    },{
+                        label: 'Deaths This Week',
+                        backgroundColor: chartColors.green,
+                        borderColor: chartColors.ltgreen,
+                        fill: true,
+                        yAxisID: 'leftAxis',
+                        data: sqlData.deaths7days
+                    },{
+                        type: 'bar',
+                        label: 'Deaths Today',
+                        backgroundColor: chartColors.orange,
+                        borderColor: chartColors.ltorange,
+                        fill: true,
+                        yAxisID: 'rightAxis',
+                        data: sqlData.deathsToday
+                    }]
+
+                },
+                // Configuration options go here
+                options: {
+                    scales: {
+                        yAxes : [
+                            {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                id: 'leftAxis',
+                                scaleLabel:
+                                {
+                                    display: true,
+                                    labelString: 'Deaths / Deaths This Week'
+                                },
+                                ticks: {
+                                    userCallback: function(tick) {
+                                        return Number(tick).toLocaleString();
+                                    }
+                                }
+                            },
+                            {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                id: 'rightAxis',
+                                scaleLabel:
+                                {
+                                    display: true,
+                                    labelString: 'Deaths Today'
+                                },
+                                ticks: {
+                                    userCallback: function(tick) {
+                                        return Number(tick).toLocaleString();
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var set = data.datasets[tooltipItem.datasetIndex];
+                                return [set.label + ": " + Number(set.data[tooltipItem.index]).toLocaleString()];
+                            }
+                        }
+                    },
+                    annotation: {
+                        annotations: [
+                            {
+                                drawTime: "afterDatasetsDraw",
+                                id: "hline",
+                                type: "line",
+                                mode: "horizontal",
+                                scaleID: "leftAxis",
+                                value: 8882,
+                                borderColor: "grey",
+                                borderWidth: 1,
+                                borderDash: [2,2],
+                                label: {
+                                    content: "<< 0.1% of Population (8882 - 1 in 1000)",
+                                    enabled: true,
+                                    backgroundColor: 'grey',
+                                    position: "left",
+                                    fontStyle: "normal",
+                                    xAdjust: 10
+                                },
+                            },
+                        ]
+                    },
+                    plugins: {
+                        deferred: {
+                            xOffset: 150,
+                            yOffset: '50%',
+                            delay: 500
+                        }
+                    }
+                }
+            });
+
+            var maxTraj = 0;
+            var casesData = [];
+            for(i = 0, j = 0; i < sqlData.totalcases.length; i++) {
+                if(isNaN(sqlData.cases7days[i])) {
+                    j = sqlData.totalcases[i];
+                }
+                else {
+                    j = sqlData.cases7days[i];
+                }
+                casesData[i] = {x: sqlData.totalcases[i], y: j, theDate:sqlData.labels[i]};
+                maxTraj = Math.max(j,maxTraj);
+            }
+            var deathsData = [];
+            for(i = 0, j = 0; i < sqlData.totaldeaths.length; i++) {
+                if(isNaN(sqlData.deaths7days[i])) {
+                    j = sqlData.totaldeaths[i];
+                }
+                else {
+                    j = sqlData.deaths7days[i];
+                }
+                deathsData[i] = {x: sqlData.totaldeaths[i], y: j, theDate:sqlData.labels[i]};
+                maxTraj = Math.max(j,maxTraj);
+            }
+
+            var b = Math.pow(10,Math.floor(Math.log(maxTraj)/Math.log(10)));
+            maxTraj = Math.ceil(maxTraj/b)*b;
+            var maxTrajX = casesData[casesData.length - 1].x;
+            b = Math.pow(10,Math.floor(Math.log(maxTrajX)/Math.log(10)));
+            maxTrajX = Math.ceil(maxTrajX/b)*b;  
+            sqlData.trajCases = casesData;
+            sqlData.trajDeaths = deathsData;              
+
+            var deathsCompCtx = document.getElementById("deathsCompChart");
+            var deathsCompChart = new Chart(deathsCompCtx, {
+                type: 'line',
+                data: {
+                    labels: sqlData.labels,
+                    datasets: [{
+                        label: '7 Day Moving Average',
+                        backgroundColor: chartColors.red,
+                        borderColor: chartColors.ltred,
+                        fill: false,
+                        data: sqlData.deathsCompAvg
+                    },{
+                        type: 'bar',
+                        label: 'Deaths Today vs. 1 Week Ago',
+                        backgroundColor: chartColors.blue,
+                        borderColor: chartColors.ltblue,
+                        fill: true,
+                        data: sqlData.deathsComp
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes : [
+                            {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                scaleLabel:
+                                {
+                                    display: true,
+                                    labelString: 'Deaths Today vs. 1 Week Ago'
+                                },
+                                ticks: {
+                                    userCallback: function(tick) {
+                                        return Number(tick).toLocaleString();
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var set = data.datasets[tooltipItem.datasetIndex];
+                                return [set.label + ": " + Number(set.data[tooltipItem.index]).toLocaleString()];
+                            }
+                        }
+                    },
+                    plugins: {
+                        deferred: {
+                            xOffset: 150,
+                            yOffset: '50%',
+                            delay: 500
+                        }
+                    }
+                }
+            });
+
+            var testsCtx = document.getElementById("testsChart");
+            window.testsChart = Chart.Line(testsCtx, {
+                data: {
+                    labels: sqlData.labels,
+                    datasets: [{
+                        label: 'Total Tests',
+                        backgroundColor: chartColors.orange,
+                        borderColor: chartColors.ltorange,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        data: sqlData.totaltests
+                    }, {
+                        label: 'New Tests Past 14 Days',
+                        backgroundColor: chartColors.purple,
+                        borderColor: chartColors.ltpurple,
+                        fill: true,
+                        yAxisID: 'leftAxis',
+                        data: sqlData.tests14days
+                    }, {
+                        type: 'bar',
+                        label: 'New Tests',
+                        backgroundColor: chartColors.green,
+                        borderColor: chartColors.ltgreen,
+                        fill: true,
+                        yAxisID: 'rightAxis',
+                        data: sqlData.testsToday
+                    }
+                ]
+
+                },
+                // Configuration options go here
+                options: {
+                    scales: {
+                        yAxes : [
+                            {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                id: 'leftAxis',
+                                scaleLabel:
+                                {
+                                    display: true,
+                                    labelString: 'Total Tests / Tests Past 14 Days'
+                                },
+                                ticks: {
+                                    userCallback: function(tick) {
+                                        return Number(tick).toLocaleString();
+                                    }
+                                }
+                            },
+                            {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                id: 'rightAxis',
+                                scaleLabel:
+                                {
+                                    display: true,
+                                    labelString: 'Tests Today'
+                                },
+                                ticks: {
+                                    userCallback: function(tick) {
+                                        return Number(tick).toLocaleString();
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var set = data.datasets[tooltipItem.datasetIndex];
+                                return [set.label + ": " + Number(set.data[tooltipItem.index]).toLocaleString()];
+                            }
+                        }
+                    },
+                    annotation: {
+                        annotations: [
+                            {
+                                drawTime: "afterDatasetsDraw",
+                                id: "hline",
+                                type: "line",
+                                mode: "horizontal",
+                                scaleID: "leftAxis",
+                                value: 444110,
+                                borderColor: "grey",
+                                borderWidth: 1,
+                                borderDash: [2,2],
+                                label: {
+                                    content: "<< 5% of Population (444,100)",
+                                    enabled: true,
+                                    backgroundColor: 'grey',
+                                    position: "left",
+                                    fontStyle: "normal",
+                                    xAdjust: 10
+                                },
+                            },
+                            {
+                                drawTime: "afterDatasetsDraw",
+                                id: "hline2",
+                                type: "line",
+                                mode: "horizontal",
+                                scaleID: "rightAxis",
+                                value: 20005,
+                                borderColor: "grey",
+                                borderWidth: 1,
+                                borderDash: [2,2],
+                                label: {
+                                    content: "0.25% of Population (20,005 - 1 in 400) >>",
+                                    enabled: true,
+                                    backgroundColor: 'grey',
+                                    position: "left",
+                                    fontStyle: "normal",
+                                    xAdjust: 10
+                                },
+                            }
+                        ]
+                    },
+                    plugins: {
+                        deferred: {
+                            xOffset: 150,
+                            yOffset: '50%',
+                            delay: 500
+                        },
+                    }
+                }
+            });
+
+
+            var posPctCtx = document.getElementById("posPctChart");
+            window.posPctChart = Chart.Line(posPctCtx, {
+                data: {
+                    labels: sqlData.labels,
+                    datasets: [{
+                        label: 'Percent Positive 7 Day Average',
+                        backgroundColor: chartColors.red,
+                        borderColor: chartColors.ltred,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        data: sqlData.posPct7days
+                    },{
+                        label: 'Percent Positive Today',
+                        backgroundColor: chartColors.blue,
+                        borderColor: chartColors.ltblue,
+                        fill: true,
+                        type: "bar",
+                        yAxisID: 'leftAxis',
+                        data: sqlData.posPct
+                    }
+                ]
+
+                },
+                // Configuration options go here
+                options: {
+                    scales: {
+                        yAxes : [
+                            {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                id: 'leftAxis',
+                                ticks: {
+                                    userCallback: function(tick) {
+                                        return Number(tick).toLocaleString() + "%";
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var set = data.datasets[tooltipItem.datasetIndex];
+                                return [set.label + ": " + Number(set.data[tooltipItem.index]).toLocaleString() + "%"];
+                            }
+                        }
+                    },
+                    plugins: {
+                        deferred: {
+                            xOffset: 150,
+                            yOffset: '50%',
+                            delay: 500
+                        },
+                    }
+                }
+            });
+
+
+            var trajCtx = document.getElementById("trajectoryChart");
+            window.trajChart = Chart.Scatter(trajCtx, {
+                // The data for our dataset
+                data: {
+                    datasets: [{
+                        label: "Cases",
+                        backgroundColor: chartColors.purple,
+                        borderColor: chartColors.ltpurple,
+                        fill: false,
+                        // data: [casesData[0],casesData[1],casesData[2]],
+                        snapGaps: true,
+                        showLine: true,
+                        lineTension: 0,
+                    },{
+                        label: "Deaths",
+                        backgroundColor: chartColors.red,
+                        borderColor: chartColors.ltred,
+                        fill: false,
+                        // data: [deathsData[0],deathsData[1],deathsData[2]],
+                        snapGaps: true,
+                        showLine: true,
+                        lineTension: 0,
+                    }]
+
+                },
+                // Configuration options go here
+                options: {
+                    scales: {
+                        xAxes : [
+                            {
+                                type: 'logarithmic',
+                                display: true,
+                                position: 'bottom',
+                                scaleLabel:
+                                {
+                                    display: true,
+                                    labelString: 'Total Cases - Logarithmic Scale'
+                                },
+                                ticks: {
+                                    min:0,
+                                    max:maxTrajX,
+                                    userCallback: function(tick) {
+                                        return Number(tick).toLocaleString();
+                                    }
+                                }
+                            }
+                        ],
+                        yAxes : [
+                            {
+                                type: 'logarithmic',
+                                display: true,
+                                position: 'left',
+                                id: 'leftAxis',
+                                scaleLabel:
+                                {
+                                    display: true,
+                                    labelString: 'New Cases (Past 7 Days) - Logarithmic Scale'
+                                },
+                                ticks: {
+                                    min:0,
+                                    max:maxTraj,
+                                    userCallback: function(tick) {
+                                        return Number(tick).toLocaleString();
+                                    }
+                                }
+                            }
+                        ]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var set = data.datasets[tooltipItem.datasetIndex];
+                                var datum = set.data[tooltipItem.index];
+                                return [datum.theDate,
+                                "New " + set.label + 
+                                " This Week: " + Number(datum.y).toLocaleString(),
+                                "Total " + set.label + ": " + Number(datum.x).toLocaleString()];
+                            }
+                        }
+                    }
+                }
+            });
+
+            var dblCtx = document.getElementById("doubleChart");
+            var dblChart = Chart.Line(dblCtx, {
+                // The data for our dataset
+                data: {
+                    labels: sqlData.labels,
+                    datasets: [{
+                        label: "Time to Double Cases",
+                        backgroundColor: chartColors.purple,
+                        borderColor: chartColors.ltpurple,
+                        fill: false,
+                        data: sqlData.timeToDouble,
+                        snapGaps: true,
+                        showLine: true,
+                        lineTension: 0,
+                    },{
+                        label: "Time to Double Deaths",
+                        backgroundColor: chartColors.orange,
+                        borderColor: chartColors.ltorange,
+                        fill: false,
+                        data: sqlData.timeToDoubleDeaths,
+                        snapGaps: true,
+                        showLine: true,
+                        lineTension: 0,
+                    },{
+                        label: "Time to Double Tests",
+                        backgroundColor: chartColors.green,
+                        borderColor: chartColors.ltgreen,
+                        fill: false,
+                        data: sqlData.timeToDoubleTests,
+                        snapGaps: true,
+                        showLine: true,
+                        lineTension: 0,
+                    }]
+
+                },
+                // Configuration options go here
+                options: {
+                    scales: {
+                        xAxes : [
+                            {
+                                display: true,
+                                position: 'bottom',
+                            }
+                        ],
+                        yAxes : [
+                            {
+                                display: true,
+                                position: 'left',
+                                id: 'leftAxis',
+                                scaleLabel:
+                                {
+                                    display: true,
+                                    labelString: 'Number of Days to Double'
+                                },
+                            }
+                        ]
+                    },
+                    plugins: {
+                        deferred: {
+                            xOffset: 150,
+                            yOffset: '50%',
+                            delay: 500
+                        }
+                    }
+                }
+            });
+
+            var x = hospData.totalMax.toLocaleString();
+            var pctCtx = document.getElementById("pctChart");
+            var pctChart = Chart.Line(pctCtx, {
+                // The data for our dataset
+                data: {
+                    labels: sqlData.labels,
+                    datasets: [{
+                        label: "New Cases (7 Day Average) As a Percentage of Max Attained (" + maxCases.toLocaleString() + " cases/day on " + maxCasesDate + ")",
+                        backgroundColor: chartColors.blue,
+                        borderColor: chartColors.ltblue,
+                        fill: false,
+                        data: sqlData.casesPctMax,
+                        snapGaps: true,
+                        showLine: true,
+                        lineTension: 0,
+                    },{
+                        label: "Deaths (7 Day Average) As a Percentage of Max Attained (" + maxDeaths.toLocaleString() + " deaths/day on " + maxDeathsDate + ")",
+                        backgroundColor: chartColors.yellow,
+                        borderColor: chartColors.ltyellow,
+                        fill: false,
+                        data: sqlData.deathsPctMax,
+                        snapGaps: true,
+                        showLine: true,
+                        lineTension: 0,
+                    },{
+                        label: "Tests (7 Day Average) As a Percentage of Max Attained (" + maxTests.toLocaleString() + " tests/day on " + maxTestsDate + ")",
+                        backgroundColor: chartColors.purple,
+                        borderColor: chartColors.ltpurple,
+                        fill: false,
+                        data: sqlData.testsPctMax,
+                        snapGaps: true,
+                        showLine: true,
+                        lineTension: 0,
+                    },{
+                        label: "Hospitalizations As a Percentage of Max Attained (" + hospData.totalMax.toLocaleString() + " hospitalized on " + hospData.maxData + ")",
+                        backgroundColor: chartColors.red,
+                        borderColor: chartColors.ltred,
+                        fill: false,
+                        data: hospData.totalPctShifted,
+                        snapGaps: true,
+                        showLine: true,
+                        lineTension: 0,
+                    }]
+                },
+                // Configuration options go here
+                options: {
+                    scales: {
+                        xAxes : [
+                            {
+                                display: true,
+                                position: 'bottom',
+                            }
+                        ],
+                        yAxes : [
+                            {
+                                display: true,
+                                position: 'left',
+                            }
+                        ]
+                    },
+                    plugins: {
+                        deferred: {
+                            xOffset: 150,
+                            yOffset: '50%',
+                            delay: 500
+                        }
+                    }
+                }
+            });
+
+            var hospCtx = document.getElementById("hospChart");
+            var hospChart = Chart.Line(hospCtx, {
+                // The data for our dataset
+                data: {
+                    labels: hospData.dates,
+                    datasets: [{
+                        label: 'Total Hospitalizations',
+                        backgroundColor: chartColors.yellow,
+                        borderColor: chartColors.ltyellow,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        data: hospData.total
+                    }, {
+                        label: 'North Jersey Hospitalizations',
+                        backgroundColor: chartColors.green,
+                        borderColor: chartColors.ltgreen,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        borderDash: [2,2],
+                        data: hospData.north
+                    }, {
+                        label: 'Central Jersey Hospitalizations',
+                        backgroundColor: chartColors.blue,
+                        borderColor: chartColors.blue,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        borderDash: [2,2],
+                        data: hospData.central
+                    }, {
+                        label: 'South Jersey Hospitalizations',
+                        backgroundColor: chartColors.red,
+                        borderColor: chartColors.red,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        borderDash: [2,2],
+                        data: hospData.south
+                    }
+                ]
+
+                },
+                // Configuration options go here
+                options: {
+                    scales: {
+                        yAxes : [
+                            {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                id: 'leftAxis',
+                                ticks: {
+                                    userCallback: function(tick) {
+                                        return Number(tick).toLocaleString();
+                                    }
+                                }
+                            },
+                        ]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var set = data.datasets[tooltipItem.datasetIndex];
+                                return [set.label + ": " + Number(set.data[tooltipItem.index]).toLocaleString()];
+                            }
+                        }
+                    },
+                    plugins: {
+                        deferred: {
+                            xOffset: 150,
+                            yOffset: '50%',
+                            delay: 500
+                        }
+                    },
+                    
+                }
+            });
+
+
+            var hospPctCtx = document.getElementById("hospPctChart");
+            var hospPctChart = Chart.Line(hospPctCtx, {
+                // The data for our dataset
+                data: {
+                    labels: hospData.dates,
+                    datasets: [{
+                        label: 'Total Hospitalizations Percent of Max',
+                        backgroundColor: chartColors.yellow,
+                        borderColor: chartColors.ltyellow,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        data: hospData.totalPct
+                    }, {
+                        label: 'North Jersey Hospitalizations Percent of Max',
+                        backgroundColor: chartColors.green,
+                        borderColor: chartColors.ltgreen,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        borderDash: [2,2],
+                        data: hospData.northPct
+                    }, {
+                        label: 'Central Jersey Hospitalizations Percent of Max',
+                        backgroundColor: chartColors.blue,
+                        borderColor: chartColors.blue,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        borderDash: [2,2],
+                        data: hospData.centralPct
+                    }, {
+                        label: 'South Jersey Hospitalizations Percent of Max',
+                        backgroundColor: chartColors.red,
+                        borderColor: chartColors.red,
+                        fill: false,
+                        yAxisID: 'leftAxis',
+                        borderDash: [2,2],
+                        data: hospData.southPct
+                    }
+                ]
+
+                },
+                // Configuration options go here
+                options: {
+                    scales: {
+                        yAxes : [
+                            {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                id: 'leftAxis',
+                                ticks: {
+                                    userCallback: function(tick) {
+                                        return Math.round(tick*10)/10 + "%";
+                                    }
+                                }
+                            },
+                        ]
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var set = data.datasets[tooltipItem.datasetIndex];
+                                return [set.label + ": " + Math.round(set.data[tooltipItem.index]*10)/10 + "%"];
+                            }
+                        }
+                    },
+                    plugins: {
+                        deferred: {
+                            xOffset: 150,
+                            yOffset: '50%',
+                            delay: 500
+                        }
+                    },
+                    
+                }
+            });
+
+
+
+            document.getElementById('animateTrajectory').addEventListener('click',function() {
+                document.getElementById('animateTrajectory').disabled = true;
+                trajChartLoopCounter = 0;
+                trajChart.data.datasets.forEach((dataset) => {
+                    while(typeof(dataset.data.pop()) != "undefined");
+                });
+                setTimeout(trajChartLoop,300);
+            });
+            setTimeout(trajChartLoop,1000);
+        } //doLoaded
+
+        var trajChartLoopCounter = 0;
+        function trajChartLoop() {
+            if(trajChartLoopCounter < sqlData.trajCases.length) {
+                trajChart.data.datasets[0].data.push(sqlData.trajCases[trajChartLoopCounter]);
+                trajChart.data.datasets[1].data.push(sqlData.trajDeaths[trajChartLoopCounter]);
+                trajChart.update();
+
+                trajChartLoopCounter += 1; 
+                setTimeout(trajChartLoop, Math.round(5000/sqlData.trajCases.length));
+            }
+            else {
+                document.getElementById('animateTrajectory').disabled = false;
+            }
+        }
+
+        </script>
+    </head>
+    <body>
+        <h1 id="theHeader">This is broken</h1>
+        <div style="width:90%">
+            <h2>
+                <a href="#Trajectory" id="Trajectory">Trajectory</a>
+                <button id="animateTrajectory" disabled="true">Animate Trajectory</button>
+            </h2>
+            <canvas id="trajectoryChart"></canvas>
+        </div>
+        <div style="width:90%">
+            <h2><a href="#Cases" id="Cases">Cases/New Cases/Active Cases</a></h2>
+            <canvas id="casesChart"></canvas>
+        </div>
+        <div style="width:90%">
+            <h2><a href="#Deaths" id="Deaths">Deaths/Deaths Today/Deaths This Week</a></h2>
+            <canvas id="deathsChart"></canvas>
+        </div>
+        <div style="width:90%">
+            <h2><a href="#Vs" id="Vs">Deaths Today vs. Deaths 1 Week Ago</a></h2>
+            <canvas id="deathsCompChart"></canvas>
+        </div>
+        <div style="width:90%">
+            <h2><a href="#Tests" id="Tests">Tests Performed</a></h2>
+            <canvas id="testsChart"></canvas>
+        </div>
+        <div style="width:90%">
+            <h2><a href="#PosPct" id="PosPct">Tests Percent Positive Today and 7 Day Average</a></h2>
+            <canvas id="posPctChart"></canvas>
+        </div>
+        <div style="width:90%">
+            <h2><a href="#Double" id="Double">Time to Double</a></h2>
+            <h3>Number of days for total case count to double at current 7 day rate. \(\frac{ln(2)}{ln(1+R)}\) where \(R = \frac{C_w}{7}C_t\);&nbsp;&nbsp;\(C_w = \) Cases This Week; \(C_t = \) Total Cases
+            </h3>
+            <canvas id="doubleChart"></canvas>
+        </div>
+        <div style="width:90%">
+            <h2><a href="#Pct" id="Pct">Daily New Cases and Deaths as Percentage of Max Value Attained</a></h2>
+            <h3></h3>
+            <canvas id="pctChart"></canvas>
+        </div>
+        <div style="width:90%">
+            <h2><a href="#Hosp" id="Hosp">NJ COVID Hospitalizations by Region</a></h2>
+            <h3></h3>
+            <canvas id="hospChart"></canvas>
+        </div>
+        <div style="width:90%">
+            <h2><a href="#HospPct" id="HospPct">NJ COVID Hospitalizations as Percentage of Maximum</a></h2>
+            <h3>Percentage of maximum value reached, NOT maximum hospital capacity</h3>
+            <canvas id="hospPctChart"></canvas>
+        </div>
+    </body>
+</html>
